@@ -8,20 +8,20 @@ This repository contains the code for the paper **"TableOrder: Rethinking Cell O
 
 ---
 
-## 1. 项目结构
+## 1. Project Structure
 
-下载项目后，主要目录如下：
+After downloading the project, the main directory structure is as follows:
 
 ```text
 TableOrder/
-├── TPE_Llama/                 # 修改后的 LLaMA / MiniCPM 模型实现
-├── ds_configs/                # DeepSpeed 配置
+├── TPE_Llama/                 # Modified LLaMA / MiniCPM model implementation
+├── ds_configs/                # DeepSpeed configuration files
 │   └── stage2.json
-├── eval_scripts/              # 评测脚本
+├── eval_scripts/              # Evaluation scripts
 │   ├── eval_hitab.py
 │   ├── table_utils.py
 │   └── metric.py
-├── src/                       # 训练与推理入口
+├── src/                       # Training and inference scripts
 │   ├── sft_minicpm_block_textmeta.py
 │   ├── run_hitab.sh
 │   ├── inference_hitab.sh
@@ -29,19 +29,19 @@ TableOrder/
 └── README.md
 ```
 
-其中，HiTab 的训练入口是：
+For HiTab, the main training script is:
 
 ```bash
 src/run_hitab.sh
 ```
 
-HiTab 的推理入口是：
+The main inference script is:
 
 ```bash
 src/inference_hitab.sh
 ```
 
-HiTab 的评测入口是：
+The main evaluation script is:
 
 ```bash
 eval_scripts/eval_hitab.py
@@ -49,34 +49,34 @@ eval_scripts/eval_hitab.py
 
 ---
 
-## 2. 环境配置
+## 2. Environment Setup
 
-建议使用 Conda 创建独立环境：
+We recommend using Conda to create an isolated environment:
 
 ```bash
 conda create -n tableorder python=3.10 -y
 conda activate tableorder
 ```
 
-安装核心依赖：
+Install the core dependencies:
 
 ```bash
 pip install torch transformers datasets accelerate peft deepspeed numpy tqdm psutil
 ```
 
-如果需要启用 Flash Attention，并且 CUDA / PyTorch 版本支持，可以额外安装：
+If you want to enable Flash Attention and your CUDA / PyTorch version supports it, you can additionally install:
 
 ```bash
 pip install flash-attn --no-build-isolation
 ```
 
-如果安装 Flash Attention 失败，可以先在训练脚本中将：
+If Flash Attention installation fails, you can disable it in the training script by changing:
 
 ```bash
 --use_flash_attn True
 ```
 
-改为：
+to:
 
 ```bash
 --use_flash_attn False
@@ -84,33 +84,15 @@ pip install flash-attn --no-build-isolation
 
 ---
 
-## 3. 路径准备
+## 3. Path Configuration
 
-原始脚本中包含作者本地路径，例如：
-
-```bash
-/data/tyj/2D-TPE-main
-```
-
-实际运行前，建议统一替换为你的项目路径。假设项目放在：
+Before running the code, please set the project root path. Suppose the repository is located at:
 
 ```bash
 /home/your_name/TableOrder
 ```
 
-可以在 `src/run_hitab.sh` 和 `src/inference_hitab.sh` 中将所有：
-
-```bash
-/data/tyj/2D-TPE-main
-```
-
-替换为：
-
-```bash
-/home/your_name/TableOrder
-```
-
-也可以直接在脚本开头设置：
+You can define the project root in `src/run_hitab.sh` and `src/inference_hitab.sh` as follows:
 
 ```bash
 PROJECT_ROOT=/home/your_name/TableOrder
@@ -118,19 +100,23 @@ cd ${PROJECT_ROOT}/src
 export PYTHONPATH=${PROJECT_ROOT}:$PYTHONPATH
 ```
 
-然后把脚本中的数据、模型和输出路径都改成 `${PROJECT_ROOT}/...` 的形式。
+Then, all data, model, and output paths can be written using `${PROJECT_ROOT}`.
+
+For example:
+
+```bash
+${PROJECT_ROOT}/data/hitab_train_7417.json
+${PROJECT_ROOT}/eval_data/hitab_test.json
+${PROJECT_ROOT}/model/MiniCPM-2B-sft-bf16-llama-format
+${PROJECT_ROOT}/output/hitab_adaptive
+${PROJECT_ROOT}/res/hitab_adaptive_res.json
+```
 
 ---
 
-## 4. 模型准备
+## 4. Model Preparation
 
-训练脚本默认加载 MiniCPM 格式的模型：
-
-```bash
---model_name_or_path /data/tyj/2D-TPE-main/model/MiniCPM-2B-sft-bf16-llama-format
-```
-
-请将基础模型放到项目的 `model/` 目录下，例如：
+The training script uses a MiniCPM-style model checkpoint by default. Please place the base model under the `model/` directory, for example:
 
 ```text
 TableOrder/
@@ -138,7 +124,7 @@ TableOrder/
     └── MiniCPM-2B-sft-bf16-llama-format/
 ```
 
-并在 `src/run_hitab.sh` 中修改：
+Then set the model path in `src/run_hitab.sh`:
 
 ```bash
 --model_name_or_path ${PROJECT_ROOT}/model/MiniCPM-2B-sft-bf16-llama-format
@@ -146,21 +132,21 @@ TableOrder/
 
 ---
 
-## 5. HiTab 数据准备
+## 5. HiTab Data Preparation
 
-训练脚本默认读取：
-
-```bash
-data/hitab_train_7417.json
-```
-
-推理脚本默认读取：
+The training script expects the HiTab training file to be placed at:
 
 ```bash
-eval_data/hitab_test.json
+${PROJECT_ROOT}/data/hitab_train_7417.json
 ```
 
-因此建议组织为：
+The inference script expects the HiTab test file to be placed at:
+
+```bash
+${PROJECT_ROOT}/eval_data/hitab_test.json
+```
+
+A recommended data structure is:
 
 ```text
 TableOrder/
@@ -170,7 +156,7 @@ TableOrder/
     └── hitab_test.json
 ```
 
-每条样本需要包含以下字段：
+Each sample should contain the following fields:
 
 ```json
 {
@@ -181,25 +167,34 @@ TableOrder/
 }
 ```
 
-代码中会读取 `instruction`、`input_seg`、`question` 和 `output` 字段，并使用 `[TAB]` 标记定位表格内容。因此，HiTab 数据预处理后需要保证 `input_seg` 中包含 `[TAB]`。
+The code reads the following fields:
+
+```text
+instruction
+input_seg
+question
+output
+```
+
+The table content is expected to appear in `input_seg`, and the table region should be marked with `[TAB]`.
 
 ---
 
-## 6. 训练 HiTab
+## 6. Training on HiTab
 
-进入项目目录：
+Go to the project directory:
 
 ```bash
 cd /home/your_name/TableOrder
 ```
 
-运行默认 adaptive order 训练：
+Run the default adaptive-order training script:
 
 ```bash
 bash src/run_hitab.sh
 ```
 
-默认设置中，HiTab 会启用表格分块：
+By default, HiTab training enables table blocking:
 
 ```bash
 ENABLE_TABLE_BLOCKS=True
@@ -209,51 +204,59 @@ TABLE_HEADER_ROWS=0
 TABLE_READ_MODE=adaptive
 ```
 
-含义如下：
+The meaning of these parameters is shown below:
 
-| 参数 | 含义 |
+| Parameter | Description |
 |---|---|
-| `ENABLE_TABLE_BLOCKS` | 是否将原始表格切成局部自解释表格块 |
-| `TABLE_BLOCK_ROWS` | 每个表格块包含的表体行数，HiTab 默认是 6 |
-| `TABLE_BLOCK_COLS` | 每个表格块包含的列数，999 基本等价于不按列切分 |
-| `TABLE_HEADER_ROWS` | 表头行数，0 表示自动检测 |
-| `TABLE_READ_MODE` | 表格读取顺序，可选 `row`、`column`、`snake`、`hilbert`、`spiral`、`adaptive`、`2d` |
+| `ENABLE_TABLE_BLOCKS` | Whether to split the original table into local table blocks |
+| `TABLE_BLOCK_ROWS` | Number of body rows in each table block; the default value for HiTab is 6 |
+| `TABLE_BLOCK_COLS` | Number of columns in each table block; 999 usually means no column-wise splitting |
+| `TABLE_HEADER_ROWS` | Number of header rows; 0 means automatic detection |
+| `TABLE_READ_MODE` | Cell traversal order, including `row`, `column`, `snake`, `hilbert`, `spiral`, `adaptive`, and `2d` |
 
-训练输出默认保存到：
+The training output is saved to:
 
 ```bash
-output/hitab_adaptive
+${PROJECT_ROOT}/output/hitab_adaptive
 ```
 
-如果想训练固定 row-major baseline，可以运行：
+To train a fixed row-major baseline, run:
 
 ```bash
-TABLE_READ_MODE=row OUTPUT_DIR=output/hitab_row bash src/run_hitab.sh
+TABLE_READ_MODE=row \
+OUTPUT_DIR=${PROJECT_ROOT}/output/hitab_row \
+bash src/run_hitab.sh
 ```
 
-训练 column order：
+To train a column-major baseline, run:
 
 ```bash
-TABLE_READ_MODE=column OUTPUT_DIR=output/hitab_column bash src/run_hitab.sh
+TABLE_READ_MODE=column \
+OUTPUT_DIR=${PROJECT_ROOT}/output/hitab_column \
+bash src/run_hitab.sh
 ```
 
-训练 Hilbert order：
+To train a Hilbert-order baseline, run:
 
 ```bash
-TABLE_READ_MODE=hilbert OUTPUT_DIR=output/hitab_hilbert bash src/run_hitab.sh
+TABLE_READ_MODE=hilbert \
+OUTPUT_DIR=${PROJECT_ROOT}/output/hitab_hilbert \
+bash src/run_hitab.sh
 ```
 
-训练 adaptive order：
+To train the adaptive TableOrder model, run:
 
 ```bash
-TABLE_READ_MODE=adaptive OUTPUT_DIR=output/hitab_adaptive bash src/run_hitab.sh
+TABLE_READ_MODE=adaptive \
+OUTPUT_DIR=${PROJECT_ROOT}/output/hitab_adaptive \
+bash src/run_hitab.sh
 ```
 
 ---
 
-## 7. 关键训练参数说明
+## 7. Important Training Arguments
 
-`src/run_hitab.sh` 中比较重要的训练参数如下：
+Some important training arguments in `src/run_hitab.sh` are:
 
 ```bash
 --num_train_epochs 2
@@ -262,10 +265,10 @@ TABLE_READ_MODE=adaptive OUTPUT_DIR=output/hitab_adaptive bash src/run_hitab.sh
 --learning_rate 2e-5
 --model_max_length 4096
 --bf16 True
---deepspeed ds_configs/stage2.json
+--deepspeed ${PROJECT_ROOT}/ds_configs/stage2.json
 ```
 
-如果显存不足，可以优先调整：
+If GPU memory is insufficient, you can reduce memory usage by changing:
 
 ```bash
 --per_device_train_batch_size 1
@@ -274,7 +277,7 @@ TABLE_READ_MODE=adaptive OUTPUT_DIR=output/hitab_adaptive bash src/run_hitab.sh
 --use_flash_attn False
 ```
 
-如果希望快速检查代码是否能跑通，可以先设置很小的训练样本量，例如在训练参数中加入：
+For a quick sanity check, you can train on a small subset by adding:
 
 ```bash
 --train_sample_size 100
@@ -282,9 +285,9 @@ TABLE_READ_MODE=adaptive OUTPUT_DIR=output/hitab_adaptive bash src/run_hitab.sh
 
 ---
 
-## 8. Adaptive Order MoE 参数说明
+## 8. Adaptive Order MoE Configuration
 
-当 `TABLE_READ_MODE=adaptive` 时，代码会启用 order routing 相关参数：
+When `TABLE_READ_MODE=adaptive`, the code enables order-routing-related parameters:
 
 ```bash
 USE_ORDER_MOE=True
@@ -296,28 +299,28 @@ ORDER_ROUTER_TEMPERATURE=0.5
 ORDER_AUX_SCALE=0.2
 ```
 
-含义如下：
+The meaning of these parameters is as follows:
 
-| 参数 | 含义 |
+| Parameter | Description |
 |---|---|
-| `SHARED_ORDER=row` | row order 作为共享主分支 |
-| `ROUTED_ORDERS` | 参与 Top-K 路由选择的候选 order |
-| `ORDER_TOP_K` | 每次保留的 routed order 数量 |
-| `ORDER_ROUTER_ENTROPY_COEF` | 路由熵正则系数，正值鼓励路由分布更尖锐 |
-| `ORDER_ROUTER_TEMPERATURE` | softmax 温度，越小分布越尖锐 |
-| `ORDER_AUX_SCALE` | routed 辅助分支残差强度 |
+| `SHARED_ORDER=row` | Uses row-major order as the shared default branch |
+| `ROUTED_ORDERS` | Candidate traversal orders for Top-K routing |
+| `ORDER_TOP_K` | Number of routed orders selected each time |
+| `ORDER_ROUTER_ENTROPY_COEF` | Entropy regularization coefficient for the router; a positive value encourages a sharper routing distribution |
+| `ORDER_ROUTER_TEMPERATURE` | Softmax temperature for routing; a smaller value makes the distribution sharper |
+| `ORDER_AUX_SCALE` | Residual strength of the routed auxiliary branches |
 
 ---
 
-## 9. 推理 HiTab
+## 9. Inference on HiTab
 
-训练完成后，运行：
+After training, run:
 
 ```bash
 bash src/inference_hitab.sh
 ```
 
-默认推理配置为：
+The default inference configuration is:
 
 ```bash
 DATASET_NAME=hitab
@@ -326,29 +329,29 @@ TABLE_BLOCK_ROWS=6
 TABLE_BLOCK_COLS=999
 TABLE_HEADER_ROWS=0
 TABLE_READ_MODE=adaptive
-MODEL_PATH=output/hitab_adaptive
-OUTPUT_PATH=res/hitab_adaptive_res.json
+MODEL_PATH=${PROJECT_ROOT}/output/hitab_adaptive
+OUTPUT_PATH=${PROJECT_ROOT}/res/hitab_adaptive_res.json
 ```
 
-如果要推理 row-major 模型：
+To run inference with a row-major model:
 
 ```bash
 TABLE_READ_MODE=row \
-MODEL_PATH=output/hitab_row \
-OUTPUT_PATH=res/hitab_row_res.json \
+MODEL_PATH=${PROJECT_ROOT}/output/hitab_row \
+OUTPUT_PATH=${PROJECT_ROOT}/res/hitab_row_res.json \
 bash src/inference_hitab.sh
 ```
 
-如果要推理 adaptive 模型：
+To run inference with an adaptive TableOrder model:
 
 ```bash
 TABLE_READ_MODE=adaptive \
-MODEL_PATH=output/hitab_adaptive \
-OUTPUT_PATH=res/hitab_adaptive_res.json \
+MODEL_PATH=${PROJECT_ROOT}/output/hitab_adaptive \
+OUTPUT_PATH=${PROJECT_ROOT}/res/hitab_adaptive_res.json \
 bash src/inference_hitab.sh
 ```
 
-推理结果是 JSONL 格式，每一行是一条样本，包含：
+The inference result is saved in JSONL format. Each line corresponds to one sample:
 
 ```json
 {
@@ -366,51 +369,53 @@ bash src/inference_hitab.sh
 
 ---
 
-## 10. 小样本推理检查
+## 10. Small-Scale Inference Check
 
-`src/inference.py` 支持通过环境变量 `INFERENCE_SAMPLE_SIZE` 随机抽取部分测试样本。为了快速检查推理流程，可以运行：
+`src/inference.py` supports randomly sampling a subset of test examples through environment variables.
+
+For a quick inference check, run:
 
 ```bash
 INFERENCE_SAMPLE_SIZE=100 \
 INFERENCE_SAMPLE_SEED=42 \
 TABLE_READ_MODE=adaptive \
-MODEL_PATH=output/hitab_adaptive \
-OUTPUT_PATH=res/hitab_adaptive_sample100_res.json \
+MODEL_PATH=${PROJECT_ROOT}/output/hitab_adaptive \
+OUTPUT_PATH=${PROJECT_ROOT}/res/hitab_adaptive_sample100_res.json \
 bash src/inference_hitab.sh
 ```
 
 ---
 
-## 11. 评测 HiTab
+## 11. Evaluation on HiTab
 
-推理完成后，进入评测目录：
+After inference, go to the evaluation directory:
 
 ```bash
-cd /home/your_name/TableOrder/eval_scripts
+cd ${PROJECT_ROOT}/eval_scripts
 ```
 
-运行：
+Run:
 
 ```bash
 python eval_hitab.py --pred_file ../res/hitab_adaptive_res.json
 ```
 
-评测脚本会读取每一行中的：
+The evaluation script reads the following fields from each prediction sample:
 
 ```text
 predict
 output
 ```
 
-然后调用 `table_utils.evaluate()` 输出最终指标。
+Then it calls `table_utils.evaluate()` to compute the final evaluation metrics.
 
-如果评测 row-major 结果：
+To evaluate the row-major result:
 
 ```bash
 python eval_hitab.py --pred_file ../res/hitab_row_res.json
 ```
 
-如果评测 adaptive 结果：
+To evaluate the adaptive TableOrder result:
 
 ```bash
 python eval_hitab.py --pred_file ../res/hitab_adaptive_res.json
@@ -418,24 +423,27 @@ python eval_hitab.py --pred_file ../res/hitab_adaptive_res.json
 
 ---
 
-## 12. 推荐的完整运行流程
+## 12. Recommended End-to-End Workflow
 
 ```bash
-# 1. 进入项目
+# 1. Go to the project root
 cd /home/your_name/TableOrder
 
-# 2. 训练 adaptive TableOrder
+# 2. Train the adaptive TableOrder model on HiTab
 TABLE_READ_MODE=adaptive \
-OUTPUT_DIR=output/hitab_adaptive \
+OUTPUT_DIR=${PROJECT_ROOT}/output/hitab_adaptive \
 bash src/run_hitab.sh
 
-# 3. 推理
+# 3. Run inference
 TABLE_READ_MODE=adaptive \
-MODEL_PATH=output/hitab_adaptive \
-OUTPUT_PATH=res/hitab_adaptive_res.json \
+MODEL_PATH=${PROJECT_ROOT}/output/hitab_adaptive \
+OUTPUT_PATH=${PROJECT_ROOT}/res/hitab_adaptive_res.json \
 bash src/inference_hitab.sh
 
-# 4. 评测
-cd eval_scripts
+# 4. Evaluate
+cd ${PROJECT_ROOT}/eval_scripts
 python eval_hitab.py --pred_file ../res/hitab_adaptive_res.json
 ```
+
+---
+

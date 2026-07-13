@@ -4,8 +4,7 @@ This repository contains the code for the paper **"TableOrder: Rethinking Cell O
 
 ## Interactive Demo
 
-Explore the TableOrder method through our  
-[interactive visualization website](https://yujie6643.github.io/TableOrder/).
+Explore the TableOrder method through our  [interactive visualization website](https://yujie6643.github.io/TableOrder/).
 
 
 <p align="center">

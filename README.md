@@ -4,7 +4,7 @@ This repository contains the code for the paper **"TableOrder: Rethinking Cell O
 
 ## Interactive Demo
 
-Explore the TableOrder method through our  [interactive visualization website](https://anonymous-tableorder-demo.2025030055.workers.dev/).
+Explore the TableOrder method through our  [interactive visualization website](https://anonymous-tableorder-demo.anonymous-review-assets.workers.dev/).
 
 
 <p align="center">

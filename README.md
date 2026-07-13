@@ -2,6 +2,12 @@
 
 This repository contains the code for the paper **"TableOrder: Rethinking Cell Ordering for Table Understanding in Large Language Models"**.
 
+## Interactive Demo
+
+Explore the TableOrder method through our  
+[interactive visualization website](https://yujie6643.github.io/TableOrder/).
+
+
 <p align="center">
   <img src="2.png" alt="TableOrder Framework" width="90%">
 </p>

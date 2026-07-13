@@ -7,7 +7,7 @@ This repository contains the code for the paper **"TableOrder: Rethinking Cell O
 Explore the TableOrder method through our  [interactive visualization website](https://anonymous-tableorder-demo.anonymous-review-assets.workers.dev/).
 
 
-<p align="center">
+<p align="left">
   <img src="1.png" alt="TableOrder Framework" width="60%">
 </p>
 

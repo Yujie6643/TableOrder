@@ -8,7 +8,7 @@ Explore the TableOrder method through our  [interactive visualization website](h
 
 
 <p align="center">
-  <img src="2.png" alt="TableOrder Framework" width="90%">
+  <img src="1.png" alt="TableOrder Framework" width="90%">
 </p>
 
 ---
